@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from Browser import BrowserWindow
+from BrowserWindow import BrowserWindow
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
