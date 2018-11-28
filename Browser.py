@@ -1,12 +1,14 @@
 from PyQt5.QtCore import QUrl, QSize
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QLineEdit, QProgressBar
+from PyQt5.QtWidgets import QMainWindow, QToolBar, QAction, QLineEdit, QProgressBar, QLabel
+
+import About
 
 
 class BrowserWindow(QMainWindow):
     name = "PyBrowser Powered by Y.Wang"
-    version = "1.0.20181125"
+    version = "1.01.20181128"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -14,9 +16,10 @@ class BrowserWindow(QMainWindow):
         self.setWindowTitle(self.name)
         self.setWindowIcon(QIcon('Assets/main.png'))
         self.resize(1200, 800)
+        self.AboutDialog = About.AboutDialog()
         # 浏览器窗体
         self.browser = QWebEngineView()
-        self.browser.load(QUrl("http://www.baidu.com/"))
+        self.browser.load(QUrl("http://www.hao123.com/"))
         self.setCentralWidget(self.browser)
         # 工具条
         self.navigation_bar = QToolBar('Navigation')
@@ -31,9 +34,12 @@ class BrowserWindow(QMainWindow):
         # 地址栏
         self.home_button = QAction(QIcon('Assets/home.png'), '主页', self)
         self.enter_button = QAction(QIcon('Assets/enter.png'), '转到', self)
-        self.url_text_bar = QLineEdit()
+        self.ssl_label1 = QLabel(self)
+        self.ssl_label2 = QLabel(self)
+        self.url_text_bar = QLineEdit(self)
         self.url_text_bar.setMinimumWidth(300)
-        self.site_icon = QAction(self)
+        self.site_icon = QLabel(self)
+        # self.site_icon.setEnabled(False)
         # 进度条
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximumWidth(120)
@@ -46,7 +52,9 @@ class BrowserWindow(QMainWindow):
         self.navigation_bar.addAction(self.refresh_button)
         self.navigation_bar.addAction(self.home_button)
         self.navigation_bar.addSeparator()
-        self.navigation_bar.addAction(self.site_icon)
+        self.navigation_bar.addWidget(self.ssl_label1)
+        self.navigation_bar.addWidget(self.ssl_label2)
+        self.navigation_bar.addWidget(self.site_icon)
         self.navigation_bar.addWidget(self.url_text_bar)
         self.navigation_bar.addAction(self.enter_button)
         self.navigation_bar.addSeparator()
@@ -59,6 +67,7 @@ class BrowserWindow(QMainWindow):
         self.refresh_button.triggered.connect(self.browser.reload)
         self.home_button.triggered.connect(self.navigate_to_home)
         self.enter_button.triggered.connect(self.navigate_to_url)
+        self.set_button.triggered.connect(self.create_about_window)
         # 触发映射
         self.url_text_bar.returnPressed.connect(self.navigate_to_url)
         self.browser.urlChanged.connect(self.renew_urlbar)
@@ -73,18 +82,31 @@ class BrowserWindow(QMainWindow):
         self.browser.load(s)
 
     def navigate_to_home(self):
-        s = QUrl("https://www.baidu.com/")
+        s = QUrl("http://www.hao123.com/")
         self.browser.load(s)
 
     def renew_urlbar(self, s):
+        prec = s.scheme()
+        if prec == 'http':
+            self.ssl_label1.setPixmap(QPixmap("Assets/unsafe.png").scaledToHeight(24))
+            self.ssl_label2.setText(" 不安全 ")
+            self.ssl_label2.setStyleSheet("color:red;")
+        elif prec == 'https':
+            self.ssl_label1.setPixmap(QPixmap("Assets/safe.png").scaledToHeight(24))
+            self.ssl_label2.setText(" 安全 ")
+            self.ssl_label2.setStyleSheet("color:green;")
         self.url_text_bar.setText(s.toString())
         self.url_text_bar.setCursorPosition(0)
 
     def renew_title(self, s):
-        self.setWindowTitle(s + " -- " + self.name)
+        self.setWindowTitle(s + " - " + self.name)
 
     def renew_icon(self, ico):
-        self.site_icon.setIcon(ico)
+        pixmapx = ico.pixmap(32, 32)
+        self.site_icon.setPixmap(pixmapx)
 
     def renew_progress_bar(self, p):
         self.progress_bar.setValue(p)
+
+    def create_about_window(self):
+        self.AboutDialog.show()
