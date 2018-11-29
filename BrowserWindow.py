@@ -99,7 +99,7 @@ class BrowserWindow(QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setWindowTitle(self.name)
+        self.setWindowTitle(self.name + " " + self.version)
         self.setWindowIcon(QIcon('Assets/main.png'))
         self.resize(1200, 800)
         self.tabs = QTabWidget()
