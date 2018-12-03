@@ -1,7 +1,7 @@
 from PyQt5.QtCore import QUrl, QSize
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtWidgets import QToolBar, QAction, QLineEdit, QProgressBar, QLabel, QMainWindow, QTabWidget
+from PyQt5.QtWidgets import QToolBar, QAction, QLineEdit, QProgressBar, QLabel, QMainWindow, QTabWidget, QStatusBar
 
 import About
 
@@ -35,12 +35,16 @@ class BrowserTab(QMainWindow):
         self.navigation_bar.setIconSize(QSize(32, 32))
         self.navigation_bar.setMovable(False)
         self.addToolBar(self.navigation_bar)
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+
         self.back_button = QAction(QIcon('Assets/back.png'), '后退', self)
         self.next_button = QAction(QIcon('Assets/forward.png'), '前进', self)
         self.stop_button = QAction(QIcon('Assets/stop.png'), '停止', self)
         self.refresh_button = QAction(QIcon('Assets/refresh.png'), '刷新', self)
         self.home_button = QAction(QIcon('Assets/home.png'), '主页', self)
         self.enter_button = QAction(QIcon('Assets/enter.png'), '转到', self)
+        self.add_button = QAction(QIcon('Assets/new.png'), '新建标签页', self)
         self.ssl_label1 = QLabel(self)
         self.ssl_label2 = QLabel(self)
         self.url_text_bar = QLineEdit(self)
@@ -53,6 +57,7 @@ class BrowserTab(QMainWindow):
         self.navigation_bar.addAction(self.stop_button)
         self.navigation_bar.addAction(self.refresh_button)
         self.navigation_bar.addAction(self.home_button)
+        self.navigation_bar.addAction(self.add_button)
         self.navigation_bar.addSeparator()
         self.navigation_bar.addWidget(self.ssl_label1)
         self.navigation_bar.addWidget(self.ssl_label2)
@@ -61,6 +66,15 @@ class BrowserTab(QMainWindow):
         self.navigation_bar.addSeparator()
         self.navigation_bar.addWidget(self.progress_bar)
         self.navigation_bar.addAction(self.set_button)
+        self.status_icon = QLabel()
+        self.status_icon.setScaledContents(True)
+        self.status_icon.setMaximumHeight(24)
+        self.status_icon.setMaximumWidth(24)
+        self.status_icon.setPixmap(QPixmap("Assets/main.png"))
+        self.status_label = QLabel()
+        self.status_label.setText(" 基于 PyQt5 以及 QWebEngineView 的网页浏览器 - " + self.mainWindow.version)
+        self.status_bar.addWidget(self.status_icon)
+        self.status_bar.addWidget(self.status_label)
 
     def navigate_to_url(self):
         s = QUrl(self.url_text_bar.text())
@@ -94,27 +108,26 @@ class BrowserTab(QMainWindow):
 
 class BrowserWindow(QMainWindow):
     name = "PyQt5-WebBrowser"
-    version = "2.0 Beta 2"
-    date = "2018.11.29"
+    version = "2.0 Beta 3"
+    date = "2018.12.03"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle(self.name + " " + self.version)
         self.setWindowIcon(QIcon('Assets/main.png'))
-        self.resize(1200, 800)
+        self.resize(1200, 900)
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.setMovable(True)
         self.tabs.setTabShape(0)
         self.setCentralWidget(self.tabs)
         self.tabs.tabCloseRequested.connect(self.close_current_tab)
-        self.tabs.tabBarDoubleClicked.connect(self.double_click_tab)
         # self.tabs.currentChanged.connect(lambda i: self.setWindowTitle(self.tabs.tabText(i) + " - " + self.name))
         self.init_tab = BrowserTab(self)
         self.init_tab.browser.load(QUrl("http://www.hao123.com/"))
         self.add_new_tab(self.init_tab)
 
-    def double_click_tab(self, p):
+    def add_blank_tab(self):
         blank_tab = BrowserTab(self)
         self.add_new_tab(blank_tab)
 
@@ -127,6 +140,7 @@ class BrowserWindow(QMainWindow):
         tab.refresh_button.triggered.connect(tab.browser.reload)
         tab.home_button.triggered.connect(tab.navigate_to_home)
         tab.enter_button.triggered.connect(tab.navigate_to_url)
+        tab.add_button.triggered.connect(self.add_blank_tab)
         tab.set_button.triggered.connect(tab.create_about_window)
         tab.url_text_bar.returnPressed.connect(tab.navigate_to_url)
         tab.browser.urlChanged.connect(tab.renew_urlbar)
